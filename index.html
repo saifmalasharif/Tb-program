@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>TB Care · Ninawa</title>
+<title>TB-Care</title>
 <style>
 /* ── SYSTEM FONTS — no external load ── */
 :root {
@@ -249,7 +249,34 @@ tbody td { padding: 11px 14px; font-size: 13px; }
   .form-grid .full { grid-column: 1; }
 }
 
-/* Tooltip on SVG map */
+/* PHOTO GALLERY */
+.photo-gallery-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 300; display: none; flex-direction: column; }
+.photo-gallery-overlay.open { display: flex; }
+.gallery-header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,.1); }
+.gallery-title { color: #fff; font-size: 15px; font-weight: 700; }
+.gallery-sub { color: rgba(255,255,255,.5); font-size: 11px; margin-top: 2px; }
+.gallery-close { width: 36px; height: 36px; border: none; background: rgba(255,255,255,.1); border-radius: 50%; cursor: pointer; color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+.gallery-body { flex: 1; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; }
+.gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media(min-width:500px){ .gallery-grid { grid-template-columns: repeat(3,1fr); } }
+.gallery-item { position: relative; border-radius: 12px; overflow: hidden; background: rgba(255,255,255,.05); aspect-ratio: 1; cursor: pointer; transition: transform .18s; }
+.gallery-item:hover { transform: scale(1.03); }
+.gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-item-del { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; background: rgba(220,38,38,.85); border: none; color: #fff; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .2s; }
+.gallery-item:hover .gallery-item-del { opacity: 1; }
+.gallery-add-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; border: 2px dashed rgba(255,255,255,.2); aspect-ratio: 1; cursor: pointer; color: rgba(255,255,255,.5); background: transparent; transition: all .18s; font-size: 13px; gap: 6px; }
+.gallery-add-btn:hover { border-color: rgba(255,255,255,.5); color: #fff; background: rgba(255,255,255,.05); }
+.gallery-add-icon { font-size: 28px; line-height: 1; }
+.gallery-empty { text-align: center; padding: 60px 20px; color: rgba(255,255,255,.4); }
+.gallery-empty-icon { font-size: 48px; margin-bottom: 12px; }
+.gallery-empty-text { font-size: 14px; }
+/* Lightbox */
+.lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.97); z-index: 400; display: none; align-items: center; justify-content: center; flex-direction: column; }
+.lightbox.open { display: flex; }
+.lightbox img { max-width: 95vw; max-height: 85vh; object-fit: contain; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.lightbox-close { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; border: none; background: rgba(255,255,255,.12); border-radius: 50%; cursor: pointer; color: #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+
+
 .map-tooltip { position: absolute; background: rgba(17,24,39,.9); color: #fff; font-size: 12px; padding: 6px 10px; border-radius: 7px; pointer-events: none; display: none; z-index: 10; white-space: nowrap; line-height: 1.5; }
 </style>
 </head>
@@ -260,7 +287,7 @@ tbody td { padding: 11px 14px; font-size: 13px; }
   <div class="login-card">
     <div class="login-mark">
       <div class="login-mark-icon"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg></div>
-      <div><div class="lm-title">TB Care Program</div><div class="lm-sub">NINAWA · HEALTH DIRECTORATE</div></div>
+      <div><div class="lm-title">TB-Care</div></div>
     </div>
     <div class="tab-row">
       <button class="tab-btn active" onclick="setTab('admin')">Admin</button>
@@ -268,7 +295,7 @@ tbody td { padding: 11px 14px; font-size: 13px; }
     </div>
     <div id="admin-login-form">
       <div class="field"><label>Username</label><input type="text" id="admin-user" placeholder="admin" autocomplete="off" autocapitalize="none"></div>
-      <div class="field"><label>Password</label><input type="password" id="admin-pass" placeholder="••••••••"></div>
+      <div class="field"><label>Password</label><div style="position:relative"><input type="password" id="admin-pass" placeholder="••••••••" style="width:100%;padding-right:42px"><button type="button" onclick="const i=document.getElementById('admin-pass');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'👁':'🙈'" style="position:absolute;right:0;top:0;height:100%;width:40px;border:none;background:transparent;cursor:pointer;font-size:16px">👁</button></div></div>
       <button class="btn-primary" onclick="adminLogin()">Sign In</button>
     </div>
     <div id="patient-login-form" style="display:none">
@@ -287,7 +314,7 @@ tbody td { padding: 11px 14px; font-size: 13px; }
   <div class="topbar">
     <div class="topbar-brand">
       <div class="topbar-icon"><svg viewBox="0 0 24 24" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg></div>
-      <div><div class="topbar-title">TB Care · Ninawa</div><div class="topbar-sub">ADMIN DASHBOARD</div></div>
+      <div><div class="topbar-title">TB-Care</div><div class="topbar-sub">ADMIN DASHBOARD</div></div>
     </div>
     <div class="topbar-right">
       <span class="chip">SAIF</span>
@@ -298,10 +325,22 @@ tbody td { padding: 11px 14px; font-size: 13px; }
     <div class="stats-grid" id="stats-grid"></div>
     <div class="alerts-banner" id="alerts-banner"></div>
 
-    <!-- SVG MAP -->
-    <div class="map-card">
+    <!-- TB TYPE CHART -->
+    <div class="map-card" style="margin-bottom:16px">
       <div class="map-header">
-        <div><h3>District TB Distribution · Ninawa</h3><p>Active cases by sector — tap a district to filter</p></div>
+        <div><h3>TB Type Distribution</h3><p>Breakdown of Normal TB · MDR-TB · XDR-TB</p></div>
+      </div>
+      <div style="padding:16px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+        <canvas id="tb-pie" width="160" height="160" style="flex-shrink:0"></canvas>
+        <div id="tb-type-stats" style="flex:1;min-width:180px"></div>
+      </div>
+    </div>
+
+    <!-- SVG MAP -->
+    <!-- DYNAMIC MAP -->
+    <div class="map-card" id="map-card">
+      <div class="map-header">
+        <div><h3 id="map-title">District TB Distribution</h3><p>Active cases by sector — tap a district to filter</p></div>
         <div class="map-legend">
           <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>High (5+)</div>
           <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div>Med (2–4)</div>
@@ -310,66 +349,84 @@ tbody td { padding: 11px 14px; font-size: 13px; }
       </div>
       <div class="map-body">
         <div id="svg-map-wrap">
-          <svg id="ninawa-svg" viewBox="0 0 500 380" xmlns="http://www.w3.org/2000/svg" style="cursor:pointer">
-            <!-- Background -->
+
+          <!-- NINAWA SVG -->
+          <svg id="ninawa-svg" viewBox="0 0 500 380" xmlns="http://www.w3.org/2000/svg" style="cursor:pointer;display:none">
             <rect width="500" height="380" fill="#dde8dd"/>
-            <!-- Ninawa border shape (approximate outline) -->
             <path d="M60,50 L160,30 L260,20 L360,40 L440,80 L460,140 L450,200 L440,260 L400,320 L340,350 L260,360 L180,350 L110,320 L70,270 L50,200 L45,140 Z" fill="#c8dbc8" stroke="#9ab89a" stroke-width="2"/>
-            <!-- River Tigris (approximate) -->
             <path d="M200,25 Q220,60 210,100 Q200,140 215,180 Q225,210 220,250 Q215,280 230,320" fill="none" stroke="#7ab3d4" stroke-width="4" stroke-linecap="round" opacity=".7"/>
-
-            <!-- District regions (clickable) -->
-            <!-- Mosul - center -->
-            <ellipse id="dist-Mosul" cx="215" cy="155" rx="52" ry="44" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Mosul"/>
-            <text x="215" y="152" text-anchor="middle" font-size="10" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Mosul</text>
-
-            <!-- Tilkaif - north of Mosul -->
-            <ellipse id="dist-Tilkaif" cx="230" cy="90" rx="38" ry="30" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Tilkaif"/>
-            <text x="230" y="87" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Tilkaif</text>
-
-            <!-- Shekhan - northeast -->
-            <ellipse id="dist-Shekhan" cx="340" cy="90" rx="38" ry="30" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Shekhan"/>
-            <text x="340" y="87" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Shekhan</text>
-
-            <!-- Tal Afar - west -->
-            <ellipse id="dist-TalAfar" cx="110" cy="160" rx="40" ry="32" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Tal Afar"/>
-            <text x="110" y="157" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Tal Afar</text>
-
-            <!-- Hamdaniya - east of Mosul -->
-            <ellipse id="dist-Hamdaniya" cx="340" cy="170" rx="42" ry="30" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Hamdaniya"/>
-            <text x="340" y="167" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Hamdaniya</text>
-
-            <!-- Sinjar - southwest -->
-            <ellipse id="dist-Sinjar" cx="105" cy="250" rx="44" ry="32" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Sinjar"/>
-            <text x="105" y="247" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Sinjar</text>
-
-            <!-- Rabia - northwest -->
-            <ellipse id="dist-Rabia" cx="150" cy="60" rx="36" ry="26" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Rabia"/>
-            <text x="150" y="58" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Rabia</text>
-
-            <!-- Zummar - north -->
-            <ellipse id="dist-Zummar" cx="80" cy="105" rx="32" ry="24" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Zummar"/>
-            <text x="80" y="103" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Zummar</text>
-
-            <!-- Makhmur - southeast -->
+            <ellipse id="dist-Mosul" cx="215" cy="155" rx="52" ry="44" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Al-Ayser"/>
+            <text x="215" y="152" text-anchor="middle" font-size="10" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Al-Ayser</text>
+            <ellipse id="dist-Tilkaif" cx="230" cy="90" rx="38" ry="30" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Talkif"/>
+            <text x="230" y="87" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Talkif</text>
+            <ellipse id="dist-Shekhan" cx="340" cy="90" rx="38" ry="30" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Shikhan"/>
+            <text x="340" y="87" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Shikhan</text>
+            <ellipse id="dist-TalAfar" cx="110" cy="160" rx="40" ry="32" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Al-Qaeyara"/>
+            <text x="110" y="157" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Al-Qaeyara</text>
+            <ellipse id="dist-Hamdaniya" cx="340" cy="170" rx="42" ry="30" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Al-Hamdania"/>
+            <text x="340" y="167" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Al-Hamdania</text>
+            <ellipse id="dist-Sinjar" cx="105" cy="250" rx="44" ry="32" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Al-Hadar"/>
+            <text x="105" y="247" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Al-Hadar</text>
+            <ellipse id="dist-Zummar" cx="80" cy="105" rx="32" ry="24" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Baaj"/>
+            <text x="80" y="103" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Baaj</text>
             <ellipse id="dist-Makhmur" cx="360" cy="280" rx="44" ry="32" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Makhmur"/>
             <text x="360" y="277" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Makhmur</text>
-
-            <!-- Qa Qaa - south -->
-            <ellipse id="dist-QaQaa" cx="255" cy="300" rx="46" ry="32" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Qa Qaa"/>
-            <text x="255" y="297" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Qa Qaa</text>
-
-            <!-- Baaj - far southwest -->
-            <ellipse id="dist-Baaj" cx="90" cy="320" rx="36" ry="26" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Baaj"/>
-            <text x="90" y="318" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Baaj</text>
-
-            <!-- Akre - far northeast -->
-            <ellipse id="dist-Akre" cx="430" cy="120" rx="36" ry="26" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Akre"/>
-            <text x="430" y="118" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Akre</text>
-
-            <!-- Case count bubbles (rendered by JS) -->
-            <g id="map-bubbles"></g>
+            <ellipse id="dist-QaQaa" cx="255" cy="300" rx="46" ry="32" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Al-Aymen"/>
+            <text x="255" y="297" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Al-Aymen</text>
+            <ellipse id="dist-Baaj" cx="90" cy="320" rx="36" ry="26" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Sinjar"/>
+            <text x="90" y="318" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Sinjar</text>
+            <ellipse id="dist-Akre" cx="430" cy="120" rx="36" ry="26" fill="#c8dbc8" stroke="#9ab89a" stroke-width="1.5" class="dist-shape" data-district="Tal Afer"/>
+            <text x="430" y="118" text-anchor="middle" font-size="9" fill="#1a3a1a" font-family="sans-serif" font-weight="600" pointer-events="none">Tal Afer</text>
+            <g id="map-bubbles-ninawa"></g>
           </svg>
+
+          <!-- BAGHDAD SVG -->
+          <svg id="baghdad-svg" viewBox="0 0 500 380" xmlns="http://www.w3.org/2000/svg" style="cursor:pointer;display:none">
+            <rect width="500" height="380" fill="#e8e0d8"/>
+            <path d="M80,40 L200,30 L320,35 L420,70 L450,150 L440,240 L400,320 L300,355 L200,360 L110,330 L70,250 L55,160 Z" fill="#d8ccc0" stroke="#b8a898" stroke-width="2"/>
+            <path d="M240,20 Q250,80 245,140 Q240,190 255,240 Q265,280 260,340" fill="none" stroke="#7ab3d4" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+            <ellipse id="bgd-Karkh" cx="185" cy="170" rx="48" ry="40" fill="#d8ccc0" stroke="#b8a898" stroke-width="1.5" class="dist-shape" data-district="Karkh"/>
+            <text x="185" y="167" text-anchor="middle" font-size="10" fill="#2a1a0a" font-family="sans-serif" font-weight="600" pointer-events="none">Karkh</text>
+            <ellipse id="bgd-Rusafa" cx="310" cy="170" rx="48" ry="40" fill="#d8ccc0" stroke="#b8a898" stroke-width="1.5" class="dist-shape" data-district="Rusafa"/>
+            <text x="310" y="167" text-anchor="middle" font-size="10" fill="#2a1a0a" font-family="sans-serif" font-weight="600" pointer-events="none">Rusafa</text>
+            <ellipse id="bgd-Adhamiya" cx="360" cy="90" rx="42" ry="30" fill="#d8ccc0" stroke="#b8a898" stroke-width="1.5" class="dist-shape" data-district="Adhamiya"/>
+            <text x="360" y="87" text-anchor="middle" font-size="9" fill="#2a1a0a" font-family="sans-serif" font-weight="600" pointer-events="none">Adhamiya</text>
+            <ellipse id="bgd-Kadhimiya" cx="160" cy="80" rx="42" ry="30" fill="#d8ccc0" stroke="#b8a898" stroke-width="1.5" class="dist-shape" data-district="Kadhimiya"/>
+            <text x="160" y="77" text-anchor="middle" font-size="9" fill="#2a1a0a" font-family="sans-serif" font-weight="600" pointer-events="none">Kadhimiya</text>
+            <ellipse id="bgd-Mansour" cx="110" cy="200" rx="44" ry="32" fill="#d8ccc0" stroke="#b8a898" stroke-width="1.5" class="dist-shape" data-district="Mansour"/>
+            <text x="110" y="197" text-anchor="middle" font-size="9" fill="#2a1a0a" font-family="sans-serif" font-weight="600" pointer-events="none">Mansour</text>
+            <ellipse id="bgd-Karrada" cx="330" cy="255" rx="42" ry="30" fill="#d8ccc0" stroke="#b8a898" stroke-width="1.5" class="dist-shape" data-district="Karrada"/>
+            <text x="330" y="252" text-anchor="middle" font-size="9" fill="#2a1a0a" font-family="sans-serif" font-weight="600" pointer-events="none">Karrada</text>
+            <ellipse id="bgd-SadrCity" cx="420" cy="175" rx="44" ry="32" fill="#d8ccc0" stroke="#b8a898" stroke-width="1.5" class="dist-shape" data-district="Sadr City"/>
+            <text x="420" y="172" text-anchor="middle" font-size="9" fill="#2a1a0a" font-family="sans-serif" font-weight="600" pointer-events="none">Sadr City</text>
+            <ellipse id="bgd-Rashid" cx="185" cy="295" rx="48" ry="32" fill="#d8ccc0" stroke="#b8a898" stroke-width="1.5" class="dist-shape" data-district="Al-Rashid"/>
+            <text x="185" y="292" text-anchor="middle" font-size="9" fill="#2a1a0a" font-family="sans-serif" font-weight="600" pointer-events="none">Al-Rashid</text>
+            <ellipse id="bgd-NewBaghdad" cx="390" cy="300" rx="44" ry="30" fill="#d8ccc0" stroke="#b8a898" stroke-width="1.5" class="dist-shape" data-district="New Baghdad"/>
+            <text x="390" y="297" text-anchor="middle" font-size="9" fill="#2a1a0a" font-family="sans-serif" font-weight="600" pointer-events="none">New Baghdad</text>
+            <g id="map-bubbles-baghdad"></g>
+          </svg>
+
+          <!-- DOHUK SVG -->
+          <svg id="dohuk-svg" viewBox="0 0 500 380" xmlns="http://www.w3.org/2000/svg" style="cursor:pointer;display:none">
+            <rect width="500" height="380" fill="#dce8f0"/>
+            <path d="M50,30 L180,20 L320,30 L440,60 L470,140 L460,230 L420,310 L320,350 L200,355 L100,320 L55,230 L40,130 Z" fill="#c8dce8" stroke="#98b8c8" stroke-width="2"/>
+            <path d="M60,60 L120,30 L180,55 L240,25 L300,50 L360,28 L420,55" fill="none" stroke="#a8c0d0" stroke-width="2" opacity=".5"/>
+            <path d="M300,20 Q290,80 280,140 Q270,200 260,300" fill="none" stroke="#7ab3d4" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+            <ellipse id="dhk-Dohuk" cx="220" cy="175" rx="52" ry="42" fill="#c8dce8" stroke="#98b8c8" stroke-width="1.5" class="dist-shape" data-district="Dohuk"/>
+            <text x="220" y="172" text-anchor="middle" font-size="10" fill="#0a1a2a" font-family="sans-serif" font-weight="600" pointer-events="none">Dohuk</text>
+            <ellipse id="dhk-Zakho" cx="115" cy="90" rx="44" ry="32" fill="#c8dce8" stroke="#98b8c8" stroke-width="1.5" class="dist-shape" data-district="Zakho"/>
+            <text x="115" y="87" text-anchor="middle" font-size="9" fill="#0a1a2a" font-family="sans-serif" font-weight="600" pointer-events="none">Zakho</text>
+            <ellipse id="dhk-Amedi" cx="370" cy="95" rx="44" ry="32" fill="#c8dce8" stroke="#98b8c8" stroke-width="1.5" class="dist-shape" data-district="Amedi"/>
+            <text x="370" y="92" text-anchor="middle" font-size="9" fill="#0a1a2a" font-family="sans-serif" font-weight="600" pointer-events="none">Amedi</text>
+            <ellipse id="dhk-Sumel" cx="115" cy="210" rx="44" ry="32" fill="#c8dce8" stroke="#98b8c8" stroke-width="1.5" class="dist-shape" data-district="Sumel"/>
+            <text x="115" y="207" text-anchor="middle" font-size="9" fill="#0a1a2a" font-family="sans-serif" font-weight="600" pointer-events="none">Sumel</text>
+            <ellipse id="dhk-Shikhan" cx="375" cy="255" rx="44" ry="32" fill="#c8dce8" stroke="#98b8c8" stroke-width="1.5" class="dist-shape" data-district="Shikhan"/>
+            <text x="375" y="252" text-anchor="middle" font-size="9" fill="#0a1a2a" font-family="sans-serif" font-weight="600" pointer-events="none">Shikhan</text>
+            <ellipse id="dhk-Akre" cx="245" cy="305" rx="48" ry="32" fill="#c8dce8" stroke="#98b8c8" stroke-width="1.5" class="dist-shape" data-district="Akre"/>
+            <text x="245" y="302" text-anchor="middle" font-size="9" fill="#0a1a2a" font-family="sans-serif" font-weight="600" pointer-events="none">Akre</text>
+            <g id="map-bubbles-dohuk"></g>
+          </svg>
+
           <div class="map-tooltip" id="map-tooltip"></div>
         </div>
         <div class="district-sidebar" id="district-sidebar"></div>
@@ -377,6 +434,7 @@ tbody td { padding: 11px 14px; font-size: 13px; }
     </div>
 
     <!-- TABLE -->
+        <!-- TABLE -->
     <div class="table-card">
       <div class="table-toolbar">
         <div class="search-wrap">
@@ -395,6 +453,10 @@ tbody td { padding: 11px 14px; font-size: 13px; }
             <option value="alert">Alerts Only</option>
           </select>
           <button class="btn-accent" onclick="openAddModal()">+ New Patient</button>
+          <button class="btn-sm gray" onclick="exportExcel()" title="Export to Excel">📊 Export</button>
+          <button class="btn-sm gray" onclick="exportData()" title="Backup data">⬇ Backup</button>
+          <button class="btn-sm gray" onclick="document.getElementById('import-inp').click()" title="Restore data">⬆ Restore</button>
+          <input type="file" id="import-inp" accept=".json" style="display:none" onchange="importData(event)">
         </div>
       </div>
       <div style="overflow-x:auto">
@@ -450,14 +512,17 @@ tbody td { padding: 11px 14px; font-size: 13px; }
           <div class="form-field"><label>Age</label><input type="number" id="f-age" placeholder="35"></div>
           <div class="form-field"><label>Gender</label><select id="f-gender"><option value="">Select</option><option>Male</option><option>Female</option></select></div>
           <div class="form-field"><label>Phone</label><input type="text" id="f-phone" placeholder="+964 7XX XXX XXXX"></div>
-          <div class="form-field"><label>Sector / District</label>
+          <div class="form-field"><label>Governorate</label>
+            <select id="f-gov" onchange="updateDistricts()">
+              <option value="">Select governorate</option>
+              <option value="Ninawa">Ninawa</option>
+              <option value="Baghdad">Baghdad</option>
+              <option value="Dohuk">Dohuk</option>
+            </select>
+          </div>
+          <div class="form-field"><label>District</label>
             <select id="f-sector">
               <option value="">Select district</option>
-              <option>Mosul</option><option>Tal Afar</option><option>Sinjar</option>
-              <option>Baaj</option><option>Rabia</option><option>Tilkaif</option>
-              <option>Hamdaniya</option><option>Shekhan</option><option>Akre</option>
-              <option>Makhmur</option><option>Qa Qaa</option><option>Zummar</option>
-              <option value="other">Other</option>
             </select>
           </div>
         </div>
@@ -465,6 +530,14 @@ tbody td { padding: 11px 14px; font-size: 13px; }
       <div class="form-section">
         <div class="form-section-title">TB Classification</div>
         <div class="form-grid">
+          <div class="form-field"><label>TB Type</label>
+            <select id="f-tbtype">
+              <option value="">Select type</option>
+              <option value="Normal TB">Normal TB</option>
+              <option value="MDR-TB">MDR-TB</option>
+              <option value="XDR-TB">XDR-TB</option>
+            </select>
+          </div>
           <div class="form-field"><label>TB Site</label><select id="f-site"><option value="">Select</option><option value="Pulmonary">Pulmonary (رئوي)</option><option value="Extrapulmonary">Extrapulmonary (خارج الرئة)</option></select></div>
           <div class="form-field"><label>Patient Category</label><select id="f-category"><option value="New">New Case</option><option value="Retreatment">Retreatment</option></select></div>
           <div class="form-field"><label>Smear Result</label><select id="f-smear"><option value="">Select</option><option value="Positive">Positive (+)</option><option value="Negative">Negative (-)</option><option value="Not done">Not done</option></select></div>
@@ -482,11 +555,26 @@ tbody td { padding: 11px 14px; font-size: 13px; }
       </div>
       <div class="form-section">
         <div class="form-section-title">Medication Stock</div>
+        <label for="f-selfcollect" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border-radius:9px;border:1.5px solid var(--border);margin-bottom:10px;cursor:pointer">
+          <input type="checkbox" id="f-selfcollect" style="width:20px;height:20px;flex-shrink:0;accent-color:var(--accent)">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text1)">Self-Collecting Patient</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">Patient collects medication independently — suppress refill alerts</div>
+          </div>
+        </label>
         <div class="form-grid">
           <div class="form-field"><label>Total Tablets Dispensed</label><input type="number" id="f-total" placeholder="56"></div>
           <div class="form-field"><label>Tablets Currently Remaining</label><input type="number" id="f-remaining" placeholder="56"></div>
           <div class="form-field full"><label>Clinical Notes</label><input type="text" id="f-notes" placeholder="Optional notes..."></div>
         </div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-title">Patient Photos</div>
+        <div id="form-photo-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
+        <button type="button" onclick="document.getElementById('reg-photo-inp').click()" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border:2px dashed var(--border);border-radius:10px;background:var(--surface2);color:var(--text2);font-size:13px;cursor:pointer;width:100%;justify-content:center">
+          <span style="font-size:18px">📷</span> Add Photos
+        </button>
+        <input type="file" id="reg-photo-inp" accept="image/*" multiple style="display:none" onchange="handleRegPhotos(event)">
       </div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeModal()">Cancel</button>
@@ -498,26 +586,62 @@ tbody td { padding: 11px 14px; font-size: 13px; }
 
 <script>
 // ── CONFIG ──────────────────────────────
-const ADMIN_USER = 'saif';
-const ADMIN_PASS = 'tb2024!secure';
+const ADMIN_ACCOUNTS = {
+  'saif':     { pass: 'tb2024!secure', gov: null,      label: 'SAIF',    role: 'superadmin' },
+  'baghdad':  { pass: 'bgd2024!tb',    gov: 'Baghdad', label: 'BAGHDAD', role: 'admin' },
+  'dohuk':    { pass: 'dhk2024!tb',    gov: 'Dohuk',   label: 'DOHUK',   role: 'admin' },
+  'ninawa':   { pass: 'nnw2024!tb',    gov: 'Ninawa',  label: 'NINAWA',  role: 'admin' }
+};
+let currentAdmin = null;
 const INTENSIVE_DAYS = 60;
 const TOTAL_DAYS = 180;
 
 // District → SVG element ID mapping
-const DIST_IDS = {
-  'mosul':'dist-Mosul','tal afar':'dist-TalAfar','sinjar':'dist-Sinjar',
-  'baaj':'dist-Baaj','rabia':'dist-Rabia','tilkaif':'dist-Tilkaif',
-  'hamdaniya':'dist-Hamdaniya','shekhan':'dist-Shekhan','akre':'dist-Akre',
-  'makhmur':'dist-Makhmur','qa qaa':'dist-QaQaa','zummar':'dist-Zummar'
+const GOV_MAP_CONFIG = {
+  'Ninawa': {
+    svgId: 'ninawa-svg', bubblesId: 'map-bubbles-ninawa',
+    ids: {
+      'al-ayser':'dist-Mosul','al-aymen':'dist-QaQaa','makhmur':'dist-Makhmur',
+      'al-qaeyara':'dist-TalAfar','al-hadar':'dist-Sinjar','al-hamdania':'dist-Hamdaniya',
+      'talkif':'dist-Tilkaif','sinjar':'dist-Baaj','baaj':'dist-Zummar',
+      'shikhan':'dist-Shekhan','tal afer':'dist-Akre'
+    },
+    centers: {
+      'al-ayser':[215,155],'al-qaeyara':[110,160],'al-hadar':[105,250],
+      'baaj':[80,105],'al-aymen':[255,300],'talkif':[230,90],
+      'al-hamdania':[340,170],'shikhan':[340,90],'tal afer':[430,120],
+      'makhmur':[360,280],'sinjar':[90,320]
+    }
+  },
+  'Baghdad': {
+    svgId: 'baghdad-svg', bubblesId: 'map-bubbles-baghdad',
+    ids: {
+      'karkh':'bgd-Karkh','rusafa':'bgd-Rusafa','adhamiya':'bgd-Adhamiya',
+      'kadhimiya':'bgd-Kadhimiya','mansour':'bgd-Mansour','karrada':'bgd-Karrada',
+      'sadr city':'bgd-SadrCity','al-rashid':'bgd-Rashid','new baghdad':'bgd-NewBaghdad'
+    },
+    centers: {
+      'karkh':[185,170],'rusafa':[310,170],'adhamiya':[360,90],
+      'kadhimiya':[160,80],'mansour':[110,200],'karrada':[330,255],
+      'sadr city':[420,175],'al-rashid':[185,295],'new baghdad':[390,300]
+    }
+  },
+  'Dohuk': {
+    svgId: 'dohuk-svg', bubblesId: 'map-bubbles-dohuk',
+    ids: {
+      'dohuk':'dhk-Dohuk','zakho':'dhk-Zakho','amedi':'dhk-Amedi',
+      'sumel':'dhk-Sumel','shikhan':'dhk-Shikhan','akre':'dhk-Akre'
+    },
+    centers: {
+      'dohuk':[220,175],'zakho':[115,90],'amedi':[370,95],
+      'sumel':[115,210],'shikhan':[375,255],'akre':[245,305]
+    }
+  }
 };
 
-// Bubble center positions (cx,cy) matching SVG ellipses
-const DIST_CENTERS = {
-  'mosul':[215,155],'tal afar':[110,160],'sinjar':[105,250],
-  'baaj':[90,320],'rabia':[150,60],'tilkaif':[230,90],
-  'hamdaniya':[340,170],'shekhan':[340,90],'akre':[430,120],
-  'makhmur':[360,280],'qa qaa':[255,300],'zummar':[80,105]
-};
+// Keep legacy refs for backward compat
+const DIST_IDS = GOV_MAP_CONFIG['Ninawa'].ids;
+const DIST_CENTERS = GOV_MAP_CONFIG['Ninawa'].centers;
 
 let patients = [];
 try { patients = JSON.parse(localStorage.getItem('tb_patients_v2') || '[]'); } catch(e){}
@@ -589,8 +713,12 @@ function showErr(msg) {
 function adminLogin() {
   const u=document.getElementById('admin-user').value.trim().toLowerCase();
   const p=document.getElementById('admin-pass').value;
-  if(u===ADMIN_USER&&p===ADMIN_PASS) showApp('admin');
-  else showErr();
+  const account=ADMIN_ACCOUNTS[u];
+  if(account && p===account.pass){
+    currentAdmin=account;
+    document.querySelector('.chip').textContent=account.label;
+    showApp('admin');
+  } else showErr();
 }
 function patientLogin() {
   const code=document.getElementById('pt-code-inp').value.trim().toUpperCase();
@@ -610,6 +738,7 @@ function logout() {
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='flex';
   ['admin-user','admin-pass','pt-code-inp'].forEach(id=>document.getElementById(id).value='');
+  currentAdmin=null;
   closePanel();
 }
 document.addEventListener('keydown',e=>{
@@ -619,13 +748,19 @@ document.addEventListener('keydown',e=>{
 });
 
 // ── STATS ────────────────────────────────
+function visiblePatients() {
+  if(!currentAdmin || currentAdmin.role==='superadmin') return patients;
+  return patients.filter(p=>p.gov===currentAdmin.gov);
+}
+
 function renderStats() {
-  const tot=patients.length;
-  const intv=patients.filter(p=>autoPhase(p)==='Intensive').length;
-  const cont=patients.filter(p=>autoPhase(p)==='Continuation').length;
-  const alrt=patients.filter(p=>['critical','low','empty'].includes(medStatus(p))&&autoPhase(p)!=='Completed').length;
-  const comp=patients.filter(p=>autoPhase(p)==='Completed').length;
-  const soon=patients.filter(p=>{const r=refillDays(p);return r!==null&&r<=7&&autoPhase(p)!=='Completed';}).length;
+  const list=visiblePatients();
+  const tot=list.length;
+  const intv=list.filter(p=>autoPhase(p)==='Intensive').length;
+  const cont=list.filter(p=>autoPhase(p)==='Continuation').length;
+  const alrt=list.filter(p=>['critical','low','empty'].includes(medStatus(p))&&autoPhase(p)!=='Completed'&&!p.selfcollect).length;
+  const comp=list.filter(p=>autoPhase(p)==='Completed').length;
+  const soon=list.filter(p=>{const r=refillDays(p);return r!==null&&r<=7&&autoPhase(p)!=='Completed'&&!p.selfcollect;}).length;
   document.getElementById('stats-grid').innerHTML=`
     <div class="stat-card"><div class="stat-label">Total</div><div class="stat-val">${tot}</div></div>
     <div class="stat-card"><div class="stat-label">Intensive</div><div class="stat-val amber">${intv}</div></div>
@@ -634,14 +769,94 @@ function renderStats() {
     <div class="stat-card"><div class="stat-label">Refill ≤7d</div><div class="stat-val ${soon>0?'amber':'green'}">${soon}</div></div>
     <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-val green">${comp}</div></div>
   `;
+  renderTBChart();
+}
+
+function renderTBChart() {
+  const list=visiblePatients();
+  const normal=list.filter(p=>p.tbtype==='Normal TB').length;
+  const mdr=list.filter(p=>p.tbtype==='MDR-TB').length;
+  const xdr=list.filter(p=>p.tbtype==='XDR-TB').length;
+  const unknown=list.filter(p=>!p.tbtype).length;
+  const total=list.length||1;
+
+  // Stat cards
+  document.getElementById('tb-type-stats').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:14px;height:14px;border-radius:3px;background:#16a34a;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div style="font-size:12px;color:var(--text2);font-weight:600">Normal TB</div>
+          <div style="height:6px;background:var(--border);border-radius:99px;margin-top:3px;overflow:hidden">
+            <div style="height:100%;width:${Math.round(normal/total*100)}%;background:#16a34a;border-radius:99px"></div>
+          </div>
+        </div>
+        <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:#16a34a;min-width:32px;text-align:right">${normal}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:14px;height:14px;border-radius:3px;background:#d97706;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div style="font-size:12px;color:var(--text2);font-weight:600">MDR-TB</div>
+          <div style="height:6px;background:var(--border);border-radius:99px;margin-top:3px;overflow:hidden">
+            <div style="height:100%;width:${Math.round(mdr/total*100)}%;background:#d97706;border-radius:99px"></div>
+          </div>
+        </div>
+        <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:#d97706;min-width:32px;text-align:right">${mdr}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:14px;height:14px;border-radius:3px;background:#dc2626;flex-shrink:0"></div>
+        <div style="flex:1">
+          <div style="font-size:12px;color:var(--text2);font-weight:600">XDR-TB</div>
+          <div style="height:6px;background:var(--border);border-radius:99px;margin-top:3px;overflow:hidden">
+            <div style="height:100%;width:${Math.round(xdr/total*100)}%;background:#dc2626;border-radius:99px"></div>
+          </div>
+        </div>
+        <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:#dc2626;min-width:32px;text-align:right">${xdr}</div>
+      </div>
+      ${unknown>0?`<div style="font-size:11px;color:var(--text3)">${unknown} patient(s) with no TB type assigned</div>`:''}
+    </div>
+  `;
+
+  // Pie chart
+  const canvas=document.getElementById('tb-pie');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const cx=80,cy=80,r=70;
+  ctx.clearRect(0,0,160,160);
+  const data=[
+    {val:normal,color:'#16a34a'},
+    {val:mdr,color:'#d97706'},
+    {val:xdr,color:'#dc2626'},
+    {val:unknown,color:'#e5e7eb'}
+  ].filter(d=>d.val>0);
+  if(!data.length){
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle='#e5e7eb';ctx.fill();
+    return;
+  }
+  let start=- Math.PI/2;
+  data.forEach(d=>{
+    const angle=(d.val/total)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+angle);ctx.closePath();
+    ctx.fillStyle=d.color;ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    start+=angle;
+  });
+  // center hole
+  ctx.beginPath();ctx.arc(cx,cy,r*0.5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+  // center text
+  ctx.fillStyle='#111827';ctx.font='bold 18px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(total,cx,cy-6);
+  ctx.font='10px sans-serif';ctx.fillStyle='#9ca3af';
+  ctx.fillText('patients',cx,cy+10);
 }
 
 // ── ALERTS ───────────────────────────────
 function renderAlerts() {
   const banner=document.getElementById('alerts-banner');
   const items=[];
-  patients.forEach(pt=>{
+  visiblePatients().forEach(pt=>{
     if(autoPhase(pt)==='Completed') return;
+    if(pt.selfcollect) return; // skip medication alerts for self-collecting patients
     const s=medStatus(pt),r=refillDays(pt);
     if(s==='empty') items.push({pt,type:'danger',msg:`${pt.name} (${pt.code}) — Medication EMPTY. Resupply immediately.`});
     else if(s==='critical') items.push({pt,type:'danger',msg:`${pt.name} (${pt.code}) — Critical: ${pt.remaining} tablets left (${r} days).`});
@@ -658,9 +873,15 @@ function renderAlerts() {
 
 // ── MAP ──────────────────────────────────
 function renderMap() {
-  // Count active patients per district
+  const gov = currentAdmin ? (currentAdmin.gov || 'Ninawa') : 'Ninawa';
+  const cfg = GOV_MAP_CONFIG[gov] || GOV_MAP_CONFIG['Ninawa'];
+  document.getElementById('map-title').textContent = 'District TB Distribution · ' + gov;
+  ['ninawa-svg','baghdad-svg','dohuk-svg'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = (id === cfg.svgId) ? 'block' : 'none';
+  });
   const counts={};
-  patients.forEach(pt=>{
+  visiblePatients().forEach(pt=>{
     if(!pt.sector||autoPhase(pt)==='Completed') return;
     const k=normDist(pt.sector);
     counts[k]=(counts[k]||0)+1;
@@ -673,22 +894,24 @@ function renderMap() {
   });
 
   // Color districts by count
-  const bubbles=document.getElementById('map-bubbles');
-  bubbles.innerHTML='';
+  const activeSvg=document.getElementById(cfg.svgId);
+  if(activeSvg) activeSvg.querySelectorAll('.dist-shape').forEach(el=>{el.style.fill='';el.style.stroke='';});
+  const bubbles=document.getElementById(cfg.bubblesId);
+  if(bubbles) bubbles.innerHTML='';
 
   Object.entries(counts).forEach(([name,count])=>{
     const color=count>=5?'#dc2626':count>=2?'#d97706':'#16a34a';
     const fillLight=count>=5?'#fee2e2':count>=2?'#fef3c7':'#dcfce7';
 
     // Color the shape
-    const elId=DIST_IDS[name];
+    const elId=cfg.ids[name];
     if(elId){
       const el=document.getElementById(elId);
       if(el){el.style.fill=fillLight;el.style.stroke=color;}
     }
 
     // Add bubble
-    const center=DIST_CENTERS[name];
+    const center=cfg.centers[name];
     if(center){
       const [cx,cy]=center;
       const r=Math.max(14,Math.min(26,10+count*4));
@@ -711,20 +934,17 @@ function renderMap() {
     }
   });
 
-  // District shapes clickable
-  document.querySelectorAll('.dist-shape').forEach(el=>{
+  if(activeSvg) activeSvg.querySelectorAll('.dist-shape').forEach(el=>{
     el.onclick=()=>{
       const name=el.getAttribute('data-district');
       document.getElementById('search-inp').value=name;
       renderTable();
-      el.closest('.map-card').nextElementSibling?.scrollIntoView({behavior:'smooth',block:'start'});
     };
   });
 
-  // Tooltip on hover (desktop)
   const tooltip=document.getElementById('map-tooltip');
   const wrap=document.getElementById('svg-map-wrap');
-  document.querySelectorAll('.dist-shape').forEach(el=>{
+  if(activeSvg) activeSvg.querySelectorAll('.dist-shape').forEach(el=>{
     const name=el.getAttribute('data-district');
     const k=normDist(name);
     const count=counts[k]||0;
@@ -770,7 +990,7 @@ function renderTable(){
   const q=(document.getElementById('search-inp').value||'').toLowerCase();
   const pf=document.getElementById('phase-filter').value;
   const af=document.getElementById('alert-filter').value;
-  let list=patients.filter(pt=>{
+  let list=visiblePatients().filter(pt=>{
     const ph=autoPhase(pt),s=medStatus(pt);
     if(q&&!pt.name.toLowerCase().includes(q)&&!pt.code.toLowerCase().includes(q)&&!(pt.sector||'').toLowerCase().includes(q)) return false;
     if(pf&&ph!==pf) return false;
@@ -820,6 +1040,8 @@ function openPanel(id){
   document.getElementById('panel-meta').innerHTML=`
     <span class="pill ${ph==='Intensive'?'phase1':ph==='Continuation'?'phase2':'pdone'}">${ph}</span>
     <span class="code-tag">${pt.code}</span>
+    ${pt.tbtype?`<span class="pill ${pt.tbtype==='MDR-TB'?'med-low':pt.tbtype==='XDR-TB'?'med-crit':'neutral'}">${pt.tbtype}</span>`:''}
+    ${pt.selfcollect?`<span class="pill neutral" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd">🏠 Self-Collecting</span>`:''}
     ${pt.category?`<span class="pill neutral">${pt.category}</span>`:''}
     ${pt.site?`<span class="pill neutral">${pt.site}</span>`:''}
   `;
@@ -857,8 +1079,10 @@ function openPanel(id){
       <div class="info-grid">
         <div class="info-cell"><div class="info-key">Age / Gender</div><div class="info-val">${pt.age||'—'} / ${pt.gender||'—'}</div></div>
         <div class="info-cell"><div class="info-key">Phone</div><div class="info-val" style="font-family:var(--mono);font-size:12px">${pt.phone||'—'}</div></div>
-        <div class="info-cell"><div class="info-key">Sector</div><div class="info-val">${pt.sector||'—'}</div></div>
+        <div class="info-cell"><div class="info-key">Governorate</div><div class="info-val">${pt.gov||'—'}</div></div>
+        <div class="info-cell"><div class="info-key">Sector / District</div><div class="info-val">${pt.sector||'—'}</div></div>
         <div class="info-cell"><div class="info-key">Health Center</div><div class="info-val">${pt.center||'—'}</div></div>
+        <div class="info-cell"><div class="info-key">TB Type</div><div class="info-val" style="font-weight:700;color:${pt.tbtype==='XDR-TB'?'var(--danger)':pt.tbtype==='MDR-TB'?'var(--warn)':'var(--text)'}">${pt.tbtype||'—'}</div></div>
         <div class="info-cell"><div class="info-key">TB Site</div><div class="info-val">${pt.site||'—'}</div></div>
         <div class="info-cell"><div class="info-key">Smear</div><div class="info-val">${pt.smear||'—'}</div></div>
         <div class="info-cell"><div class="info-key">Category</div><div class="info-val">${pt.category||'—'}</div></div>
@@ -890,12 +1114,63 @@ function openPanel(id){
   `;
 
   document.getElementById('panel-footer').innerHTML=`
+    <button class="btn-sm green" onclick="refillPatient('${pt.id}')">💊 Refill</button>
+    <button class="btn-sm gray" onclick="openGallery('${pt.id}')" style="background:#1a1a2e;color:#fff;border:none">📷 Photos</button>
+    <button class="btn-sm ${pt.selfcollect?'gray':'gray'}" onclick="toggleSelfCollect('${pt.id}')" style="${pt.selfcollect?'background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd':''}">🏠 ${pt.selfcollect?'Self-Collecting ON':'Self-Collecting OFF'}</button>
     <button class="btn-sm gray" onclick="openEditModal('${pt.id}')">✏ Edit</button>
     <button class="btn-sm red" onclick="deletePatient('${pt.id}')">Delete</button>
   `;
 
   document.getElementById('panel-overlay').style.display='block';
   document.getElementById('detail-panel').classList.add('open');
+}
+
+function toggleSelfCollect(id){
+  const pt=patients.find(p=>p.id===id);
+  if(!pt) return;
+  pt.selfcollect=!pt.selfcollect;
+  save();renderStats();renderAlerts();renderTable();openPanel(id);
+}
+
+function refillPatient(id){
+  const pt=patients.find(p=>p.id===id);
+  if(!pt) return;
+  pt.remaining=pt.total||56;
+  pt.lastRefill=new Date().toISOString().split('T')[0];
+  save();renderStats();renderAlerts();renderMap();renderTable();openPanel(id);
+  // Show brief success flash
+  const btn=document.querySelector(`[onclick="refillPatient('${id}')"]`);
+  if(btn){btn.textContent='✓ Done';btn.style.background='#15803d';setTimeout(()=>{btn.textContent='💊 Refill';btn.style.background='';},1500);}
+}
+
+function exportExcel(){
+  const list=visiblePatients();
+  if(!list.length){alert('No patients to export.');return;}
+  const headers=['Code','Name','Age','Gender','Phone','Governorate','District','TB Type','TB Site','Category','Smear','Health Center','Start Date','Phase','Current Drug','Days Left','Total Tablets','Remaining Tablets','Daily Dose','Refill Days','Supply Status','Last Refill','Notes'];
+  const rows=list.map(pt=>{
+    const ph=autoPhase(pt);
+    const dl=daysLeft(pt);
+    const r=refillDays(pt);
+    const s=medStatus(pt);
+    return [
+      pt.code||'',pt.name||'',pt.age||'',pt.gender||'',pt.phone||'',
+      pt.gov||'',pt.sector||'',pt.tbtype||'',pt.site||'',pt.category||'',
+      pt.smear||'',pt.center||'',pt.startDate||'',ph,currentDrug(pt),
+      dl!==null?dl:'',pt.total||'',pt.remaining||'',pt.daily||'',
+      r!==null?r:'',s,pt.lastRefill||'',pt.notes||''
+    ];
+  });
+  let csv=headers.join(',')+'\n';
+  rows.forEach(row=>{
+    csv+=row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')+'\n';
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='tb-patients-'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function closePanel(){
@@ -921,7 +1196,9 @@ function clearForm(){
   ['name','phone','center','notes'].forEach(f=>document.getElementById('f-'+f).value='');
   document.getElementById('f-age').value='';
   document.getElementById('f-gender').value='';
-  document.getElementById('f-sector').value='';
+  document.getElementById('f-gov').value='';
+  document.getElementById('f-sector').innerHTML='<option value="">Select district</option>';
+  document.getElementById('f-tbtype').value='';
   document.getElementById('f-site').value='';
   document.getElementById('f-category').value='New';
   document.getElementById('f-smear').value='';
@@ -932,6 +1209,9 @@ function clearForm(){
   document.getElementById('f-remaining').value='';
   document.getElementById('f-start').value=new Date().toISOString().split('T')[0];
   document.getElementById('f-code').value='';
+  document.getElementById('f-selfcollect').checked=false;
+  regPhotos=[];
+  renderRegPhotoPreview();
 }
 function openAddModal(){
   editingId=null;
@@ -949,7 +1229,9 @@ function openEditModal(id){
   document.getElementById('f-age').value=pt.age||'';
   document.getElementById('f-gender').value=pt.gender||'';
   document.getElementById('f-phone').value=pt.phone||'';
-  document.getElementById('f-sector').value=pt.sector||'';
+  document.getElementById('f-gov').value=pt.gov||'';
+  updateDistricts(pt.sector||'');
+  document.getElementById('f-tbtype').value=pt.tbtype||'';
   document.getElementById('f-site').value=pt.site||'';
   document.getElementById('f-category').value=pt.category||'New';
   document.getElementById('f-smear').value=pt.smear||'';
@@ -960,6 +1242,7 @@ function openEditModal(id){
   document.getElementById('f-daily').value=pt.daily||'';
   document.getElementById('f-total').value=pt.total||'';
   document.getElementById('f-remaining').value=pt.remaining||'';
+  document.getElementById('f-selfcollect').checked=pt.selfcollect||false;
   document.getElementById('f-notes').value=pt.notes||'';
   document.getElementById('modal-overlay').style.display='flex';
 }
@@ -976,7 +1259,9 @@ function savePatient(){
     age:document.getElementById('f-age').value,
     gender:document.getElementById('f-gender').value,
     phone:document.getElementById('f-phone').value.trim(),
+    gov:document.getElementById('f-gov').value,
     sector:document.getElementById('f-sector').value,
+    tbtype:document.getElementById('f-tbtype').value,
     site:document.getElementById('f-site').value,
     category:document.getElementById('f-category').value,
     smear:document.getElementById('f-smear').value,
@@ -987,6 +1272,7 @@ function savePatient(){
     daily:parseInt(document.getElementById('f-daily').value)||0,
     total:parseInt(document.getElementById('f-total').value)||0,
     remaining:parseInt(document.getElementById('f-remaining').value)||0,
+    selfcollect: document.getElementById('f-selfcollect').checked,
     notes:document.getElementById('f-notes').value.trim(),
   };
   if(editingId){
@@ -995,6 +1281,11 @@ function savePatient(){
   } else {
     data.id='pt_'+Date.now();
     patients.push(data);
+    // Save any photos added during registration
+    if(regPhotos.length) {
+      savePhotos(data.id, regPhotos);
+      regPhotos=[];
+    }
   }
   save();closeModal();renderStats();renderAlerts();renderMap();renderTable();
   if(editingId) openPanel(editingId);
@@ -1075,7 +1366,203 @@ function renderPatientView(pt){
   `;
 }
 
+// ── DISTRICTS BY GOVERNORATE ─────────────
+const DISTRICTS = {
+  'Ninawa': ['Al-Ayser','Al-Aymen','Makhmur','Al-Qaeyara','Al-Hadar','Al-Hamdania','Talkif','Sinjar','Baaj','Shikhan','Tal Afer'],
+  'Baghdad': ['Karkh','Rusafa','Adhamiya','Kadhimiya','Mansour','Karrada','Sadr City','Al-Rashid','New Baghdad'],
+  'Dohuk': ['Dohuk','Zakho','Amedi','Sumel','Shikhan','Akre']
+};
+
+function updateDistricts(selectedDistrict) {
+  const gov = document.getElementById('f-gov').value;
+  const sel = document.getElementById('f-sector');
+  sel.innerHTML = '<option value="">Select district</option>';
+  if (gov && DISTRICTS[gov]) {
+    DISTRICTS[gov].forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d;
+      if (selectedDistrict && d === selectedDistrict) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+  const other = document.createElement('option');
+  other.value = 'other';
+  other.textContent = 'Other';
+  sel.appendChild(other);
+}
+
+let regPhotos = [];
+
+function handleRegPhotos(e) {
+  const files = Array.from(e.target.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      regPhotos.push({ data: ev.target.result, date: new Date().toISOString().split('T')[0], name: file.name });
+      renderRegPhotoPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+function renderRegPhotoPreview() {
+  const container = document.getElementById('form-photo-preview');
+  if(!container) return;
+  container.innerHTML = regPhotos.map((p, i) => `
+    <div style="position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+      <img src="${p.data}" style="width:100%;height:100%;object-fit:cover"/>
+      <button onclick="regPhotos.splice(${i},1);renderRegPhotoPreview()" style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(220,38,38,.85);border:none;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+  `).join('');
+}
+
 document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// ── BACKUP / RESTORE ─────────────────────
+function exportData(){
+  if(!patients.length){alert('No patients to backup.');return;}
+  const blob=new Blob([JSON.stringify(patients,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='tb-patients-backup-'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data)) throw new Error('Invalid format');
+      if(!confirm(`This will restore ${data.length} patients. Continue?`)) return;
+      patients=data;
+      save();
+      renderStats();renderAlerts();renderMap();renderTable();
+      alert('Restore successful! '+data.length+' patients loaded.');
+    }catch(err){
+      alert('Invalid backup file. Please use a file exported from this app.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
 </script>
+<!-- PHOTO GALLERY OVERLAY -->
+<div class="photo-gallery-overlay" id="photo-gallery">
+  <div class="gallery-header">
+    <div>
+      <div class="gallery-title" id="gallery-patient-name">Patient Photos</div>
+      <div class="gallery-sub" id="gallery-photo-count">0 photos</div>
+    </div>
+    <button class="gallery-close" onclick="closeGallery()">✕</button>
+  </div>
+  <div class="gallery-body">
+    <div class="gallery-grid" id="gallery-grid"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt=""/>
+</div>
+
+<input type="file" id="photo-inp" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)">
+
+<script>
+// ── PHOTO GALLERY ────────────────────────
+let galleryPatientId = null;
+
+function getPhotos(id) {
+  try { return JSON.parse(localStorage.getItem('tb_photos_' + id) || '[]'); } catch(e){ return []; }
+}
+function savePhotos(id, photos) {
+  try { localStorage.setItem('tb_photos_' + id, JSON.stringify(photos)); } catch(e){}
+}
+
+function openGallery(id) {
+  galleryPatientId = id;
+  const pt = patients.find(p => p.id === id);
+  document.getElementById('gallery-patient-name').textContent = pt ? pt.name : 'Patient Photos';
+  renderGallery();
+  document.getElementById('photo-gallery').classList.add('open');
+}
+
+function closeGallery() {
+  document.getElementById('photo-gallery').classList.remove('open');
+  galleryPatientId = null;
+}
+
+function renderGallery() {
+  const photos = getPhotos(galleryPatientId);
+  const count = photos.length;
+  document.getElementById('gallery-photo-count').textContent = count + (count === 1 ? ' photo' : ' photos');
+  const grid = document.getElementById('gallery-grid');
+
+  if(!count) {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1">
+        <div class="gallery-empty">
+          <div class="gallery-empty-icon">📷</div>
+          <div class="gallery-empty-text">No photos yet.<br>Tap + to add the first one.</div>
+        </div>
+      </div>
+      <button class="gallery-add-btn" onclick="document.getElementById('photo-inp').click()">
+        <span class="gallery-add-icon">+</span>
+        <span>Add Photo</span>
+      </button>`;
+    return;
+  }
+
+  grid.innerHTML = photos.map((photo, i) => `
+    <div class="gallery-item" onclick="openLightbox('${photo.data}')">
+      <img src="${photo.data}" alt="Photo ${i+1}" loading="lazy"/>
+      <button class="gallery-item-del" onclick="event.stopPropagation();deletePhoto(${i})">✕</button>
+    </div>
+  `).join('') + `
+    <button class="gallery-add-btn" onclick="document.getElementById('photo-inp').click()">
+      <span class="gallery-add-icon">+</span>
+      <span>Add Photo</span>
+    </button>`;
+}
+
+function handlePhotoUpload(e) {
+  const file = e.target.files[0];
+  if(!file || !galleryPatientId) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const photos = getPhotos(galleryPatientId);
+    photos.push({ data: ev.target.result, date: new Date().toISOString().split('T')[0], name: file.name });
+    savePhotos(galleryPatientId, photos);
+    renderGallery();
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function deletePhoto(index) {
+  if(!confirm('Delete this photo?')) return;
+  const photos = getPhotos(galleryPatientId);
+  photos.splice(index, 1);
+  savePhotos(galleryPatientId, photos);
+  renderGallery();
+}
+
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox-img').src = '';
+}
+</script>
+
 </body>
 </html>
